@@ -1,11 +1,11 @@
-﻿using CheckerPrice.Models;
+﻿using CheckerPrice.ConsoleApp.Models;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
 
-namespace CheckerPrice
+namespace CheckerPrice.ConsoleApp
 {
     public static class Program
     {
@@ -33,26 +33,24 @@ namespace CheckerPrice
 
             });
 
-            using (ServiceProvider services = ConfigureServices())
+            using ServiceProvider services = ConfigureServices();
+            //Services.My.IMyService myService = services.GetService<Services.My.IMyService>();
+
+            try
             {
-                //Services.My.IMyService myService = services.GetService<Services.My.IMyService>();
+                var result = await parser.ParseArguments<AddActionParameters, CheckActionParameters>(args)
+                    .MapResult(
+                        (AddActionParameters model) => Ok(() => Task.CompletedTask),
+                        (CheckActionParameters model) => Ok(() => Task.CompletedTask),
+                        _ => Task.FromResult(1)
+                    );
 
-                try
-                {
-                    var result = await parser.ParseArguments<AddModel, CheckModel>(args)
-                        .MapResult(
-                            (AddModel model) => Ok(() => Task.CompletedTask),
-                            (CheckModel model) => Ok(() => Task.CompletedTask),
-                            _ => Task.FromResult(1)
-                        );
-
-                    return result;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"ERROR: {e.Message}");
-                    return 1;
-                }
+                return result;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"ERROR: {e.Message}");
+                return 1;
             }
         }
 
