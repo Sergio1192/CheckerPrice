@@ -1,6 +1,7 @@
 ﻿using CheckerPrice.Services.Models;
 using CheckerPrice.Services.Scrappers;
 using CsvHelper;
+using CsvHelper.Configuration;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -9,13 +10,20 @@ using System.Threading.Tasks;
 
 namespace CheckerPrice.Services
 {
-    public class CheckerPrice : ICheckerPrice
+    public class CheckerPriceService : ICheckerPriceService
     {
-        private const string PATH = "./links.csv";
+        private const string PATH = "./Data/links.csv";
+
+        public CheckerPriceService()
+        {
+            string directory = Path.GetDirectoryName(PATH);
+            if (!Directory.Exists(directory))
+                Directory.CreateDirectory(directory);
+        }
 
         public async Task<CheckModel> AddAsync(string url)
         {
-            var newId = (await ShowAsync().MaxAsync(e => e.Id)) + 1;
+            var newId = (await ShowAsync().DefaultIfEmpty(new UrlModel { Id = 0 }).MaxAsync(e => e.Id)) + 1;
             var model = new UrlModel
             {
                 Id = newId,
@@ -29,8 +37,13 @@ namespace CheckerPrice.Services
 
         private Task AddAsync(IEnumerable<UrlModel> list, bool append)
         {
+            var exist = File.Exists(PATH);
+
             using var writer = new StreamWriter(PATH, append);
-            using var csv = new CsvWriter(writer, CultureInfo.InvariantCulture);
+            using var csv = new CsvWriter(writer, new CsvConfiguration(CultureInfo.CurrentCulture)
+            {
+                HasHeaderRecord = !(append && exist)
+            });
 
             return csv.WriteRecordsAsync(list);
         }
@@ -76,12 +89,18 @@ namespace CheckerPrice.Services
             return await CheckAsync(model);
         }
 
-        public IAsyncEnumerable<UrlModel> ShowAsync()
+        public async IAsyncEnumerable<UrlModel> ShowAsync()
         {
-            using var reader = new StreamReader(PATH);
-            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            if (!File.Exists(PATH))
+                yield break;
 
-            return csv.GetRecordsAsync<UrlModel>();
+            using var reader = new StreamReader(PATH);
+            using var csv = new CsvReader(reader, CultureInfo.CurrentCulture);
+
+            await foreach (var record in csv.GetRecordsAsync<UrlModel>())
+            {
+                yield return record;
+            }
         }
     }
 }

@@ -13,9 +13,9 @@ namespace CheckerPrice.Services.Scrappers
             var htmlDoc = await WebUtilities.GetParsedHtmlFromUrlAsync(url);
 
             string priceString = htmlDoc.DocumentNode.Descendants("span").First(e => e.GetAttributeValue("data-qa", string.Empty) == "mfeCtaMain#offer0#finalPrice").InnerText;
-            double price = double.Parse(priceString);
+            double price = double.Parse(priceString, System.Globalization.NumberStyles.Currency);
 
-            string name = htmlDoc.DocumentNode.Descendants("span").First(e => e.GetAttributeValue("data-qa", string.Empty) == "mfe-game-title#name").InnerText;
+            string name = htmlDoc.DocumentNode.Descendants("h1").First(e => e.GetAttributeValue("data-qa", string.Empty) == "mfe-game-title#name").InnerText;
 
             return new PriceModel
             {

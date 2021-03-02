@@ -16,8 +16,6 @@ namespace CheckerPrice.Services.Scrappers
         private static Task<string> CallUrlAsync(string fullUrl)
         {
             HttpClient client = new HttpClient();
-            //ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls13;
-            //client.DefaultRequestHeaders.Accept.Clear();
 
             return client.GetStringAsync(fullUrl);
         }

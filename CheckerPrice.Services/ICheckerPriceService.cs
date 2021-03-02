@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace CheckerPrice.Services
 {
-    public interface ICheckerPrice
+    public interface ICheckerPriceService
     {
         Task<CheckModel> AddAsync(string url);
         IAsyncEnumerable<UrlModel> ShowAsync();

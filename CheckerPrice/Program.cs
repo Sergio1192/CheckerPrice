@@ -1,4 +1,6 @@
 ﻿using CheckerPrice.ConsoleApp.Models;
+using CheckerPrice.ConsoleApp.Services;
+using CheckerPrice.Services;
 using CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -11,11 +13,6 @@ namespace CheckerPrice.ConsoleApp
     {
         public static async Task<int> Main(string[] args)
         {
-            //args = "add -u sdsd".Split();
-            //args = "check".Split();
-            //args = "help".Split();
-            //args = "add".Split();
-
             // Configure parser
             var parser = new Parser(settings =>
             {
@@ -34,14 +31,17 @@ namespace CheckerPrice.ConsoleApp
             });
 
             using ServiceProvider services = ConfigureServices();
-            //Services.My.IMyService myService = services.GetService<Services.My.IMyService>();
+            var service = services.GetService<ICheckerPriceConsoleService>();
 
             try
             {
-                var result = await parser.ParseArguments<AddActionParameters, CheckActionParameters>(args)
+                var result = await parser.ParseArguments<AddActionParameters, CheckActionParameters, CheckUrlActionParameters, DeleteActionParameters, ShowActionParameters>(args)
                     .MapResult(
-                        (AddActionParameters model) => Ok(() => Task.CompletedTask),
-                        (CheckActionParameters model) => Ok(() => Task.CompletedTask),
+                        (AddActionParameters model) => Ok(() => service.AddAsync(model.Url)),
+                        (CheckActionParameters model) => Ok(() => service.CheckAsync(model.Id)),
+                        (CheckUrlActionParameters model) => Ok(() => service.CheckAsync(model.Url)),
+                        (DeleteActionParameters model) => Ok(() => service.DeleteAsync(model.Id)),
+                        (ShowActionParameters model) => Ok(() => service.ShowAsync()),
                         _ => Task.FromResult(1)
                     );
 
@@ -72,8 +72,8 @@ namespace CheckerPrice.ConsoleApp
 
         private static IServiceCollection AddMyServices(this IServiceCollection services)
         {
-            // Add services
-            //services.AddTransient<Services.My.IMyService, Services.My.MyService>();
+            services.AddTransient<ICheckerPriceService, CheckerPriceService>();
+            services.AddTransient<ICheckerPriceConsoleService, CheckerPriceConsoleService>();
 
             return services;
         }
