@@ -1,7 +1,80 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+@using CheckerPrice.Services
+@using CheckerPrice.Services.Models
 
-Welcome to your new app.
+@inject ICheckerPriceService CheckerPriceService
+@inject IJSRuntime JsRuntime;
 
-<SurveyPrompt Title="How is Blazor working for you?" />
+@if (list == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Url</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td><input @bind-value="insertUrl" style="width: 100%;"/></td>
+                <td><a href="#" @onclick="AddRow">Add</a></td>
+            </tr>
+
+            @foreach (var model in list)
+            {
+                <tr>
+                    <td>@model.Information.Name</td>
+                    <td>@model.Information.Price</td>
+                    <td><a href="@model.Identifier.Url" target="_blank">@model.Identifier.Url</a></td>
+                    <td><a href="#" @onclick="@(() => DeleteRow(model.Identifier.Id))">Delete</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private string insertUrl;
+
+    private List<CheckModel> list;
+
+    protected override async Task OnInitializedAsync()
+    {
+        list = new List<CheckModel>();
+        await foreach (var model in CheckerPriceService.CheckAsync())
+        {
+            list.Add(model);
+            this.StateHasChanged();
+        }
+    }
+
+    private async Task DeleteRow(int id)
+    {
+        list.RemoveAt(list.FindIndex(m => m.Identifier.Id == id));
+
+        await CheckerPriceService.DeleteAsync(id);
+    }
+
+    private async Task AddRow()
+    {
+        if (string.IsNullOrEmpty(insertUrl))
+        {
+            await JsRuntime.InvokeVoidAsync("alert", "The url is empty");
+
+            return;
+        }
+
+        var model = await CheckerPriceService.AddAsync(insertUrl);
+
+        insertUrl = null;
+        list.Add(model);
+    }
+}

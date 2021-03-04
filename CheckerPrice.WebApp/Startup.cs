@@ -1,5 +1,4 @@
 using CheckerPrice.Services;
-using CheckerPrice.WebApp.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -23,7 +22,6 @@ namespace CheckerPrice.WebApp
         {
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<WeatherForecastService>();
             services.AddSingleton<ICheckerPriceService, CheckerPriceService>();
         }
 

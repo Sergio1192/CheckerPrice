@@ -1,0 +1,30 @@
+﻿@page "/check"
+
+@using CheckerPrice.Services
+@using CheckerPrice.Services.Models
+
+@inject ICheckerPriceService CheckerPriceService
+@inject IJSRuntime JsRuntime;
+
+<input @bind-value="url" style="width: 100%;" />
+<button class="btn btn-primary" @onclick="CheckUrl">Check</button>
+
+<h1>@model?.Price</h1>
+<b>@model?.Name</b>
+
+@code {
+    private PriceModel model = null;
+    private string url;
+
+    private async Task CheckUrl()
+    {
+        if (string.IsNullOrEmpty(url))
+        {
+            await JsRuntime.InvokeVoidAsync("alert", "The url is empty");
+
+            return;
+        }
+
+        model = await CheckerPriceService.CheckAsync(url);
+    }
+}
