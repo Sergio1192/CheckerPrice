@@ -72,8 +72,8 @@ namespace CheckerPrice.ConsoleApp
 
         private static IServiceCollection AddMyServices(this IServiceCollection services)
         {
-            services.AddTransient<ICheckerPriceService, CheckerPriceService>();
-            services.AddTransient<ICheckerPriceConsoleService, CheckerPriceConsoleService>();
+            services.AddSingleton<ICheckerPriceService, CheckerPriceService>();
+            services.AddSingleton<ICheckerPriceConsoleService, CheckerPriceConsoleService>();
 
             return services;
         }
